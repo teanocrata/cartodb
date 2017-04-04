@@ -12,7 +12,7 @@ module Carto
       before_filter :load_organization
       before_filter :owners_only
       before_filter :load_user, only: [:show, :update, :destroy]
-
+      before_filter :link_ghost_tables, only: :destroy
       def index
         presentations = @organization.users.each do |user|
           Carto::Api::UserPresenter.new(user, current_viewer: current_viewer).to_poro_without_id

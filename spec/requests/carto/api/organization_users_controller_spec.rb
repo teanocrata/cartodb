@@ -79,7 +79,7 @@ describe Carto::Api::OrganizationUsersController do
   end
 
   def run_in_user_database(user, query)
-    ::User[user.id].in_database.run(query)
+    user.in_database.run(query)
   end
 
   before(:each) do
@@ -503,7 +503,7 @@ describe Carto::Api::OrganizationUsersController do
     it 'should delete users' do
       login(@organization.owner)
 
-      user_to_be_deleted = @organization.non_owner_users[0]
+      user_to_be_deleted = @organization.non_owner_users.first
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username)
 
@@ -515,7 +515,7 @@ describe Carto::Api::OrganizationUsersController do
     it 'should delete users with ghost tables' do
       login(@organization.owner)
 
-      user_to_be_deleted = @organization.non_owner_users[0]
+      user_to_be_deleted = @organization.non_owner_users.second
 
       run_in_user_database(user_to_be_deleted, %{
         CREATE TABLE manoloescobar ("description" text);
