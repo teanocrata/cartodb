@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require_dependency 'carto/uuidhelper'
+require_dependency 'carto/ghost_tables_manager'
 
 module OrganizationUsersHelper
   include Carto::UUIDHelper
@@ -79,5 +80,9 @@ module OrganizationUsersHelper
 
   def soft_param_to_boolean(value)
     value == 'true' || value == '1' || value == true
+  end
+
+  def link_ghost_tables
+    Carto::GhostTablesManager.new(@user.id).link_ghost_tables_synchronously
   end
 end
