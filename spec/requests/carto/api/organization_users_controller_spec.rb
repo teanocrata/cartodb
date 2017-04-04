@@ -536,9 +536,7 @@ describe Carto::Api::OrganizationUsersController do
 
       user_to_be_deleted = create_test_user(unique_name('user'), @organization)
 
-      run_in_user_database(user_to_be_deleted, %{
-        CREATE TABLE manoloescobar ("description" text);
-      })
+      ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
 
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username)
@@ -551,9 +549,7 @@ describe Carto::Api::OrganizationUsersController do
 
       user_to_be_deleted = create_test_user(unique_name('user'), @organization)
 
-      run_in_user_database(user_to_be_deleted, %{
-        CREATE TABLE manoloescobar ("description" text);
-      })
+      ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
 
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username,

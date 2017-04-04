@@ -2320,6 +2320,59 @@ describe User do
     end
   end
 
+  describe 'methods' do
+    describe 'has_unregistered_tables?' do
+      # TODO this test must to be stubed when the related method be tested (real_tables)
+      it "should return true when a user creates a table and don't cartodbfy it" do
+        @user = create_user
+
+        @user.in_database.run( %{
+          CREATE TABLE manoloescobar ("description" text);
+        })
+
+        @user.has_unregistered_tables?.should eq true
+      end
+
+      it "should return true when a user creates a table and cartodbfy it but there is no syncronization proccess" do
+        @user = create_user
+
+        @user.in_database.run( %{
+          CREATE TABLE manoloescobar ("description" text);
+          SELECT * FROM CDB_CartodbfyTable('manoloescobar');
+        })
+
+        @user.has_unregistered_tables?.should eq true
+      end
+
+      it "should return false when a user has no tables" do
+        @user = create_user
+        @user.has_unregistered_tables?.should eq false
+      end
+
+      it "should return false when a user has only registered tables" do
+        @user = create_user
+
+        create_table :user_id => @user.id, :name => 'My first table', :privacy => UserTable::PRIVACY_PUBLIC
+        @user.reload
+
+        @user.has_unregistered_tables?.should eq false
+      end
+
+      it "should return true when a user have both registered and unregistered tables" do
+        @user = create_user
+
+        create_table :user_id => @user.id, :name => 'My first table', :privacy => UserTable::PRIVACY_PUBLIC
+        @user.reload
+
+        @user.in_database.run( %{
+          CREATE TABLE manoloescobar ("description" text);
+          SELECT * FROM CDB_CartodbfyTable('manoloescobar');
+        })
+
+        @user.has_unregistered_tables?.should eq true
+      end
+    end
+  end
   protected
 
   def create_org(org_name, org_quota, org_seats)
