@@ -121,6 +121,8 @@ module Carto
           render_jsonp "Can't delete @user. #{'Has shared entities' if @user.has_shared_entities?}", 410
         end
 
+        render_jsonp("Can't delete @user, has unregistered tables: 'force_delete' param available", 409) && return if @user.has_unregistered_tables? && !params[:force_delete]
+
         @user.destroy
         @user.delete_in_central
 

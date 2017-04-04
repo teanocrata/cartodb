@@ -399,7 +399,7 @@ module CartoDB
               database.run(%{ DROP FUNCTION IF EXISTS "#{@user.database_schema}"._CDB_UserQuotaInBytes()})
               drop_analysis_cache
               drop_all_functions_from_schema(@user.database_schema)
-              database.run(%{ DROP SCHEMA IF EXISTS "#{@user.database_schema}" })
+              database.run(%{ DROP SCHEMA IF EXISTS "#{@user.database_schema}" CASCADE})
             end
           end
 

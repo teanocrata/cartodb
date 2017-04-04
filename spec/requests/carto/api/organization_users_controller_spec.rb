@@ -488,6 +488,7 @@ describe Carto::Api::OrganizationUsersController do
   end
 
   describe 'user deletion' do
+
     it 'returns 401 for non authorized calls' do
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name, u_username: @org_user_1.username)
       last_response.status.should == 401
@@ -503,7 +504,7 @@ describe Carto::Api::OrganizationUsersController do
     it 'should delete users' do
       login(@organization.owner)
 
-      user_to_be_deleted = @organization.non_owner_users.first
+      user_to_be_deleted = create_test_user(unique_name('user'), @organization)
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username)
 
@@ -515,7 +516,7 @@ describe Carto::Api::OrganizationUsersController do
     it 'should delete users with ghost tables' do
       login(@organization.owner)
 
-      user_to_be_deleted = @organization.non_owner_users.second
+      user_to_be_deleted = create_test_user(unique_name('user'), @organization)
 
       run_in_user_database(user_to_be_deleted, %{
         CREATE TABLE manoloescobar ("description" text);
@@ -524,6 +525,39 @@ describe Carto::Api::OrganizationUsersController do
 
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username)
+
+      last_response.status.should eq 200
+
+      User[user_to_be_deleted.id].should be_nil
+    end
+
+    it 'should not delete users with unregistered tables' do
+      login(@organization.owner)
+
+      user_to_be_deleted = create_test_user(unique_name('user'), @organization)
+
+      run_in_user_database(user_to_be_deleted, %{
+        CREATE TABLE manoloescobar ("description" text);
+      })
+
+      delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
+                                                  u_username: user_to_be_deleted.username)
+
+      last_response.status.should eq 409
+    end
+
+    it 'should delete users with unregistered tables when force' do
+      login(@organization.owner)
+
+      user_to_be_deleted = create_test_user(unique_name('user'), @organization)
+
+      run_in_user_database(user_to_be_deleted, %{
+        CREATE TABLE manoloescobar ("description" text);
+      })
+
+      delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
+                                                  u_username: user_to_be_deleted.username,
+                                                  force_delete: true)
 
       last_response.status.should eq 200
 
@@ -545,7 +579,7 @@ describe Carto::Api::OrganizationUsersController do
         ::User.any_instance.unstub(:delete_in_central)
         Cartodb::Central.stubs(:sync_data_with_cartodb_central?).returns(true)
         @organization.reload
-        @user_to_be_deleted = @organization.non_owner_users.first
+        @user_to_be_deleted = create_test_user(unique_name('user'), @organization)
       end
 
       def mock_delete_request(code)

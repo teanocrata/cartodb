@@ -347,6 +347,10 @@ class User < Sequel::Model
     shared_entities.any?
   end
 
+  def has_unregistered_tables?
+    tables.count != real_tables.count
+  end
+
   def before_destroy
     # A viewer can't destroy data, this allows the cleanup. Down to dataset level
     # to skip model hooks.
