@@ -78,6 +78,10 @@ describe Carto::Api::OrganizationUsersController do
     user.soft_obs_general_limit.should eq value
   end
 
+  def run_in_user_database(user, query)
+    ::User[user.id].in_database.run(query)
+  end
+
   before(:each) do
     ::User.any_instance.stubs(:validate_credentials_not_taken_in_central).returns(true)
     ::User.any_instance.stubs(:create_in_central).returns(true)
@@ -500,6 +504,24 @@ describe Carto::Api::OrganizationUsersController do
       login(@organization.owner)
 
       user_to_be_deleted = @organization.non_owner_users[0]
+      delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
+                                                  u_username: user_to_be_deleted.username)
+
+      last_response.status.should eq 200
+
+      User[user_to_be_deleted.id].should be_nil
+    end
+
+    it 'should delete users with ghost tables' do
+      login(@organization.owner)
+
+      user_to_be_deleted = @organization.non_owner_users[0]
+
+      run_in_user_database(user_to_be_deleted, %{
+        CREATE TABLE manoloescobar ("description" text);
+        SELECT * FROM CDB_CartodbfyTable('#{ user_to_be_deleted.username }', 'manoloescobar');
+      })
+
       delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
                                                   u_username: user_to_be_deleted.username)
 
