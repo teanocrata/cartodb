@@ -240,9 +240,21 @@
   <% if !@user.new? && current_user.organization_owner? -%>
     <% if @user != current_user %>
       <div class="FormAccount-footer">
-        <button href="<%= CartoDB.url(self, 'delete_organization_user', {id: @user.username}, current_user) %>" type="button" class="CDB-Button CDB-Button--error js-deleteAccount">
+        <button href="<%= CartoDB.url(self, 'delete_organization_user', {id: @user.username, force_delete: true}, current_user) %>" type="button" class="CDB-Button CDB-Button--error js-deleteAccount">
           <span class="CDB-Button-Text CDB-Text is-semibold CDB-Size-small u-upperCase">Delete user</span>
         </button>
+
+        <div class="Toggler">
+          <%= check_box_tag(:force_delete) %>
+          <%= label_tag(:force_delete, '') %>
+        </div>
+        <div class="FormAccount-rowInfo FormAccount-rowInfo--marginLeft">
+          <% if current_user.soft_geocoding_limit %>
+            <p class="CDB-Text CDB-Size-small u-altTextColor">Force deletion</p>
+          <% else %>
+            <p class="CDB-Text CDB-Size-small u-altTextColor">Deletion works on most cases, force deletion in case you're completly sure.</p>
+          <% end %>
+        </div>
 
         <button type="submit" class="CDB-Button CDB-Button--primary">
           <span class="CDB-Button-Text CDB-Text is-semibold CDB-Size-small u-upperCase">Save changes</span>

@@ -115,11 +115,7 @@ module Carto
       def destroy
         render_jsonp("Can't delete org owner", 401) && return if @organization.owner_id == @user.id
 
-        unless @user.can_delete
-          render_jsonp "Can't delete @user. #{'Has shared entities' if @user.has_shared_entities?}", 410
-        end
-
-        render_jsonp("Can't delete @user, has unregistered tables: 'force_delete' param available", 409) && return if @user.has_unregistered_tables? && !params[:force_delete]
+        @user.force_delete = params[:force_delete]
 
         @user.destroy
         @user.delete_in_central
@@ -128,6 +124,9 @@ module Carto
       rescue CartoDB::CentralCommunicationFailure => e
         CartoDB::Logger.error(exception: e, message: 'Central error deleting user from EUMAPI', user: @user)
         render_jsonp "User couldn't be deleted", 500
+      rescue CartoDB::BaseCartoDBError => e
+        CartoDB::Logger.error(exception: e, message: 'Error deleting user from EUMAPI', user: @user)
+        render_jsonp "User couldn't be deleted:  #{e.message}", 410
       rescue => e
         render_jsonp "User couldn't be deleted: #{e.message}", 500
       end

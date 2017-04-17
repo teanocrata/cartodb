@@ -334,10 +334,6 @@ class User < Sequel::Model
 
   end
 
-  def can_delete
-    !has_shared_entities?
-  end
-
   def shared_entities
     CartoDB::Permission.where(owner_id: id).all.select { |p| p.acl.present? }
   end
@@ -347,8 +343,8 @@ class User < Sequel::Model
     shared_entities.any?
   end
 
-  def has_unregistered_tables?
-    tables.count != real_tables.count
+  def force_delete=(force_delete)
+    @force_delete = force_delete
   end
 
   def before_destroy
@@ -374,7 +370,9 @@ class User < Sequel::Model
       end
 
       unless can_delete
-        raise CartoDB::BaseCartoDBError.new('Cannot delete user, has shared entities')
+        raise CartoDB::BaseCartoDBError.new("Cannot delete user, " \
+        "#{'Has shared entities. ' if has_shared_entities?}"  \
+        "#{'Has unregistered tables, force deletion available.' if has_unregistered_tables?}")
       end
 
       has_organization = true
@@ -1658,5 +1656,13 @@ class User < Sequel::Model
     if Cartodb.get_config(:aggregation_tables).present?
       db_service.connect_to_aggregation_tables
     end
+  end
+
+  def can_delete
+    !has_shared_entities? && (!has_unregistered_tables? || @force_delete)
+  end
+
+  def has_unregistered_tables?
+    tables.count != real_tables.count
   end
 end

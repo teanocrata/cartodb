@@ -116,6 +116,15 @@ describe Admin::OrganizationUsersController do
 
           ::User[@existing_user.id].should be_nil
         end
+
+        it 'should not delete users with unregistered tables' do
+          ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
+
+          delete delete_organization_user_url(user_domain: @org_user_owner.username, id: @existing_user.username)
+          last_response.status.should eq 302
+
+          ::User[@existing_user.id].should be
+        end
       end
     end
 

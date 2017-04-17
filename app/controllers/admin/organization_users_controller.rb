@@ -183,7 +183,8 @@ class Admin::OrganizationUsersController < Admin::AdminController
   end
 
   def destroy
-    raise "Can't delete user. #{'Has shared entities' if @user.has_shared_entities?}" unless @user.can_delete
+
+    @user.force_delete = params[:force_delete]
 
     @user.destroy
     @user.delete_in_central
