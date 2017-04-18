@@ -344,7 +344,7 @@ class User < Sequel::Model
   end
 
   def force_delete=(force_delete)
-    @force_delete = force_delete
+    @force_delete = force_delete.to_s == "true"
   end
 
   def before_destroy
@@ -369,13 +369,13 @@ class User < Sequel::Model
         end
       end
 
-      unless can_delete
-        raise CartoDB::BaseCartoDBError.new("Cannot delete user, " \
-        "#{'Has shared entities. ' if has_shared_entities?}"  \
-        "#{'Has unregistered tables, force deletion available.' if has_unregistered_tables?}")
-      end
-
       has_organization = true
+    end
+
+    unless can_delete
+      raise CartoDB::BaseCartoDBError.new("Cannot delete user, " \
+      "#{'Has shared entities. ' if has_shared_entities?}"  \
+      "#{'Has unregistered tables, force deletion available.' if has_unregistered_tables?}")
     end
 
     begin

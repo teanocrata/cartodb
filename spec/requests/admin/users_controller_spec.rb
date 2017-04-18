@@ -27,6 +27,7 @@ describe Admin::UsersController do
     let(:password) { 'abcdefgh' }
     before(:all) do
       @user2 = create_user(password: password)
+      @user3 = create_user(password: password)
       @saml_organization = FactoryGirl.create(:saml_organization)
       @saml_user = create_user(password: password, organization_id: @saml_organization.id)
       @saml_user.reload
@@ -58,6 +59,24 @@ describe Admin::UsersController do
       login_as(@user2, scope: @user2.username)
       delete account_user_url(deletion_password_confirmation: password)
       Carto::User.where(id: @user2.id).first.should be_nil
+      last_response.body.include?('Password does not match').should be_false
+    end
+
+    it 'should not delete if password match but has unregistered tables ' do
+      host! "#{@user3.username}.localhost.lan"
+      login_as(@user3, scope: @user3.username)
+      ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
+      delete account_user_url(deletion_password_confirmation: password)
+      ::User[@user3.id].should be
+      last_response.body.include?('Password does not match').should be_false
+    end
+
+    it 'deletes if password match, has unregistered tables and force_param' do
+      host! "#{@user3.username}.localhost.lan"
+      login_as(@user3, scope: @user3.username)
+      ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
+      delete account_user_url(deletion_password_confirmation: password, force_delete: true)
+      ::User[@user3.id].should be_nil
       last_response.body.include?('Password does not match').should be_false
     end
   end

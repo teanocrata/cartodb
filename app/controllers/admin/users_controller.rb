@@ -119,6 +119,8 @@ class Admin::UsersController < Admin::AdminController
       raise PASSWORD_DOES_NOT_MATCH_MESSAGE
     end
 
+    @user.force_delete = params[:force_delete]
+
     @user.destroy
     @user.delete_in_central
 
