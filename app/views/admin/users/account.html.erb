@@ -11,7 +11,7 @@
     var upgrade_url = "<%= current_user.upgrade_url(request.protocol) %>";
     var services_list = <%= @services.to_json.html_safe %>;
     var dashboardNotifications = <%= safe_js_object @dashboard_notifications.to_json %>;
-    
+
     // Necessary for Google + actions
     var access_token = '';
     <% if (@google_plus_config.present?) %>
@@ -174,7 +174,19 @@
           </div>
           <div class="FormAccount-rowData">
             <span class="FormAccount-button--deleteAccount CDB-Size-medium js-deleteAccount">Delete my account and all my data</span>
+            <div class="Toggler">
+              <%= check_box_tag(:force_delete) %>
+              <%= label_tag(:force_delete, '') %>
+            </div>
+            <div class="FormAccount-rowInfo FormAccount-rowInfo--marginLeft">
+              <% if current_user.soft_geocoding_limit %>
+                <p class="CDB-Text CDB-Size-small u-altTextColor">Force deletion</p>
+              <% else %>
+                <p class="CDB-Text CDB-Size-small u-altTextColor">Deletion works on most cases, force deletion in case you're completly sure.</p>
+              <% end %>
+            </div>
           </div>
+
         </div>
       <% end %>
     <% end %>
