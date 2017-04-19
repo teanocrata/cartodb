@@ -9,6 +9,7 @@ class Admin::UsersController < Admin::AdminController
   include LoginHelper
   include AvatarHelper
   include OrganizationNotificationsHelper
+  include OrganizationUsersHelper
 
   SERVICE_TITLES = {
     'gdrive' => 'Google Drive',
@@ -33,6 +34,7 @@ class Admin::UsersController < Admin::AdminController
   before_filter :load_account_deletion_info, only: [:account, :delete]
   before_filter :load_dashboard_notifications, only: [:account, :profile]
   before_filter :load_organization_notifications, only: [:account, :profile]
+  before_filter :link_ghost_tables, only: :delete
 
   layout 'application'
 

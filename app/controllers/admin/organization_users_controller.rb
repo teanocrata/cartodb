@@ -19,6 +19,7 @@ class Admin::OrganizationUsersController < Admin::AdminController
   before_filter :login_required, :check_permissions
   before_filter :get_user, only: [:edit, :update, :destroy, :regenerate_api_key]
   before_filter :initialize_google_plus_config, only: [:edit, :update]
+  before_filter :link_ghost_tables, only: :destroy
 
   layout 'application'
 
