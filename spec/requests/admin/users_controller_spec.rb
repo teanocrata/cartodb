@@ -23,11 +23,18 @@ describe Admin::UsersController do
     login_as(@user, scope: @user.username)
   end
 
+  def run_in_user_database(user, query)
+    user.in_database.run(query)
+  end
+
   describe '#delete' do
     let(:password) { 'abcdefgh' }
     before(:all) do
       @user2 = create_user(password: password)
       @user3 = create_user(password: password)
+      @user4 = create_user(password: password)
+      @user5 = create_user(password: password)
+      @user6 = create_user(password: password)
       @saml_organization = FactoryGirl.create(:saml_organization)
       @saml_user = create_user(password: password, organization_id: @saml_organization.id)
       @saml_user.reload
@@ -55,28 +62,43 @@ describe Admin::UsersController do
     end
 
     it 'deletes if password match' do
-      host! "#{@user2.username}.localhost.lan"
-      login_as(@user2, scope: @user2.username)
+      host! "#{@user3.username}.localhost.lan"
+      login_as(@user3, scope: @user3.username)
       delete account_user_url(deletion_password_confirmation: password)
-      Carto::User.where(id: @user2.id).first.should be_nil
+      Carto::User.where(id: @user3.id).first.should be_nil
       last_response.body.include?('Password does not match').should be_false
     end
 
-    it 'should not delete if password match but has unregistered tables ' do
-      host! "#{@user3.username}.localhost.lan"
-      login_as(@user3, scope: @user3.username)
+    it 'should delete if password match and has ghost tables' do
+      host! "#{@user4.username}.localhost.lan"
+      login_as(@user4, scope: @user4.username)
+
+      run_in_user_database(@user4, %{
+        CREATE TABLE manoloescobar ("description" text);
+        SELECT * FROM CDB_CartodbfyTable('#{ 'manoloescobar' }');
+      })
+
+      delete account_user_url(deletion_password_confirmation: password)
+
+      last_response.body.include?('Password does not match').should be_false
+      ::User[@user4.id].should be_nil
+    end
+
+    it 'should not delete if password match but has unregistered tables' do
+      host! "#{@user5.username}.localhost.lan"
+      login_as(@user5, scope: @user5.username)
       ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
       delete account_user_url(deletion_password_confirmation: password)
-      ::User[@user3.id].should be
+      ::User[@user5.id].should be
       last_response.body.include?('Password does not match').should be_false
     end
 
     it 'deletes if password match, has unregistered tables and force_param' do
-      host! "#{@user3.username}.localhost.lan"
-      login_as(@user3, scope: @user3.username)
+      host! "#{@user6.username}.localhost.lan"
+      login_as(@user6, scope: @user6.username)
       ::User.any_instance.stubs(:has_unregistered_tables?).returns(true)
       delete account_user_url(deletion_password_confirmation: password, force_delete: true)
-      ::User[@user3.id].should be_nil
+      ::User[@user6.id].should be_nil
       last_response.body.include?('Password does not match').should be_false
     end
   end

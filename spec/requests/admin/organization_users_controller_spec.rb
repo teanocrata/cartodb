@@ -24,6 +24,10 @@ describe Admin::OrganizationUsersController do
     }
   end
 
+  def run_in_user_database(user, query)
+    user.in_database.run(query)
+  end
+
   describe 'security' do
     describe '#show' do
       it 'returns 404 for non authorized users' do
@@ -115,6 +119,24 @@ describe Admin::OrganizationUsersController do
           last_response.status.should eq 302
 
           ::User[@existing_user.id].should be_nil
+        end
+
+        it 'should delete users with ghost tables' do
+          login(@organization.owner)
+
+          user_to_be_deleted = create_test_user(unique_name('user'), @organization)
+
+          run_in_user_database(user_to_be_deleted, %{
+            CREATE TABLE manoloescobar ("description" text);
+            SELECT * FROM CDB_CartodbfyTable('#{ user_to_be_deleted.username }', 'manoloescobar');
+          })
+
+          delete api_v2_organization_users_delete_url(id_or_name: @organization.name,
+                                                      u_username: user_to_be_deleted.username)
+
+          last_response.status.should eq 200
+
+          ::User[user_to_be_deleted.id].should be_nil
         end
 
         it 'should not delete users with unregistered tables' do
