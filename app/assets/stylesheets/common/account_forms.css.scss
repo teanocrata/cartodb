@@ -178,6 +178,11 @@ $sLabel-width: 140px;
   @include flex-direction(column);
   @include align-items(flex-start);
 }
+
+.FormAccount-rowData.space-between {
+  @include justify-content(space-between);
+}
+
 .FormAccount-planTag {
   padding: 5px 10px;
   border-radius: 4px;

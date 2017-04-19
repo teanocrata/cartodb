@@ -60,6 +60,10 @@ $sHeight: 20px;
 .Toggler input:checked + label {
   background-color: #73C86B;
 }
+.Toggler.delete-toggler input:checked + label {
+  @include justify-content(flex-end, end);
+  background-color: #F24440;
+}
 
 // Toggler grey
 $color: #BBB;

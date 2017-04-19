@@ -136,7 +136,7 @@
         </div>
       <% end %>
 
-      <%# if none of the services are activated, this block shouldn't appear %>
+      <%# if none of the services are activated, this block shouldnt appear %>
       <% if @services.size > 0 %>
         <div class="FormAccount-title">
           <p class="FormAccount-titleText">Connect to external data sources</p>
@@ -173,21 +173,18 @@
           <div class="FormAccount-rowLabel">
             <label class="CDB-Text CDB-Size-medium is-semibold u-mainTextColor">Are you sure?</label>
           </div>
-          <div class="FormAccount-rowData">
+          <div class="FormAccount-rowData space-between">
             <span class="FormAccount-button--deleteAccount CDB-Size-medium js-deleteAccount">Delete my account and all my data</span>
-            <div class="Toggler">
-              <%= check_box_tag(:force_delete) %>
-              <%= label_tag(:force_delete, '') %>
-            </div>
-            <div class="FormAccount-rowInfo FormAccount-rowInfo--marginLeft">
-              <% if current_user.soft_geocoding_limit %>
+            <div class="FormAccount-rowInfo">
+              <div class="Toggler delete-toggler">
+                <%= check_box_tag(:force_delete) %>
+                <%= label_tag(:force_delete, '') %>
+              </div>
+              <div class="FormAccount-rowInfo FormAccount-rowInfo--marginLeft">
                 <p class="CDB-Text CDB-Size-small u-altTextColor">Force deletion</p>
-              <% else %>
-                <p class="CDB-Text CDB-Size-small u-altTextColor">Deletion works on most cases, force deletion in case you're completly sure.</p>
-              <% end %>
+              </div>
             </div>
           </div>
-
         </div>
       <% end %>
     <% end %>
